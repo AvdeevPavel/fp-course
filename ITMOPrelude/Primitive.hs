@@ -93,17 +93,15 @@ natCmp (Succ a) (Succ b) = natCmp a b
 
 -- n совпадает с m 
 natEq :: Nat -> Nat -> Bool
-natEq Zero     Zero     = True
-natEq Zero     (Succ _) = False
-natEq (Succ _) Zero     = False
-natEq (Succ n) (Succ m) = natEq n m
+natEq n m = case (natCmp n m) of
+	EQ -> True
+	otherwise -> False
 
 -- n меньше m
 natLt :: Nat -> Nat -> Bool
-natLt Zero     Zero     = False
-natLt Zero     (Succ _) = True
-natLt (Succ _) Zero     = False
-natLt (Succ n) (Succ m) = natLt n m
+natLt n m = case (natCmp n m) of
+	LT -> True
+	otherwise -> False
 
 infixl 6 +.
 -- Сложение для натуральных чисел
@@ -114,7 +112,7 @@ Zero     +. m = m
 infixl 6 -.
 -- Вычитание для натуральных чисел
 (-.) :: Nat -> Nat -> Nat
-Zero -. m = error "Bad subtraction for natural number"
+Zero -. m = Zero
 n -. Zero = n
 (Succ n) -. (Succ m) = n -. m
 
@@ -143,37 +141,53 @@ gcd n m = gcd m (natMod n m)
 -- Целые числа
 
 -- Требуется, чтобы представление каждого числа было единственным
-data Int = UNDEFINED deriving (Show,Read)
+data Int = Positive Nat | Negative Nat deriving (Show,Read)
 
-intZero   = undefined   -- 0
-intOne    = undefined     -- 1
-intNegOne = undefined -- -1
+intZero   = Positive natZero   -- 0
+intOne    = Positive natOne    -- 1
+intNegOne = Negative natZero   -- -1
 
 -- n -> - n
 intNeg :: Int -> Int
-intNeg = undefined
+intNeg (Positive Zero) = intZero
+intNeg (Positive (Succ n)) = Negative n
+intNeg (Negative n) = Positive $ Succ n
 
 -- Дальше также как для натуральных
 intCmp :: Int -> Int -> Tri
-intCmp = undefined
+intCmp (Positive _) (Negative _) = GT 
+intCmp (Negative _) (Positive _) = LT
+intCmp (Positive n) (Positive m) = natCmp n m
+intCmp (Negative n) (Negative m) = natCmp n m
 
 intEq :: Int -> Int -> Bool
-intEq = undefined
+intEq n m = case (intCmp n m) of 
+	EQ -> True
+	otherwise -> False
 
 intLt :: Int -> Int -> Bool
-intLt = undefined
+intLt n m = case (intCmp n m) of 
+	LT -> True
+	otherwise -> False
 
 infixl 6 .+., .-.
 -- У меня это единственный страшный терм во всём файле
 (.+.) :: Int -> Int -> Int
-n .+. m = undefined
+(Positive n) .+. (Positive m) = Positive $ n +. m
+(Negative n) .+. (Negative m) = Negative $ Succ $ n +. m 
+(Positive n) .+. (Negative m) = if' (natLt n (Succ m)) (Negative $ m -. n) (Positive $ n -. (Succ m))
+n .+. m = m .+. n
 
 (.-.) :: Int -> Int -> Int
 n .-. m = n .+. (intNeg m)
 
 infixl 7 .*.
 (.*.) :: Int -> Int -> Int
-n .*. m = undefined
+(Positive Zero) .*. (Negative m) = Positive Zero
+(Positive n) .*. (Positive m) = Positive $ n *. m
+(Negative n) .*. (Negative m) = Positive $ (Succ n) *. (Succ m)
+(Positive n) .*. (Negative m) = Negative $ (n *. (Succ m)) -. natOne
+n .*. m = m .*. n
 
 -------------------------------------------
 -- Рациональные числа
