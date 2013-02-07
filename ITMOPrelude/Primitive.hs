@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-module ITMOPrelude.Primitive where
+module Primitive where
 
 import Prelude (Show, Read, error)
 
@@ -116,6 +116,9 @@ Zero -. m = Zero
 n -. Zero = n
 (Succ n) -. (Succ m) = n -. m
 
+natDec :: Nat -> Nat
+natDec = (-.)natOne
+
 infixl 7 *.
 -- Умножение для натуральных чисел
 (*.) :: Nat -> Nat -> Nat
@@ -136,6 +139,7 @@ natMod n = snd . natDivMod n -- Остаток
 gcd :: Nat -> Nat -> Nat
 gcd n Zero = n 
 gcd n m = gcd m (natMod n m)
+
 
 -------------------------------------------
 -- Целые числа
