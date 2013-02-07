@@ -153,7 +153,6 @@ intNeg (Positive Zero) = intZero
 intNeg (Positive (Succ n)) = Negative n
 intNeg (Negative n) = Positive $ Succ n
 
--- Дальше также как для натуральных
 intCmp :: Int -> Int -> Tri
 intCmp (Positive _) (Negative _) = GT 
 intCmp (Negative _) (Positive _) = LT
@@ -170,8 +169,11 @@ intLt n m = case (intCmp n m) of
 	LT -> True
 	otherwise -> False
 
+getNatural :: Int -> Nat
+getNatural (Positive x) = x 
+getnatural (Negative y) = Succ y
+
 infixl 6 .+., .-.
--- У меня это единственный страшный терм во всём файле
 (.+.) :: Int -> Int -> Int
 (Positive n) .+. (Positive m) = Positive $ n +. m
 (Negative n) .+. (Negative m) = Negative $ Succ $ n +. m 
@@ -192,35 +194,44 @@ n .*. m = m .*. n
 -------------------------------------------
 -- Рациональные числа
 
-data Rat = Rat Int Nat
+data Rat = Rat Int Nat deriving(Show, Read)
 
 ratNeg :: Rat -> Rat
 ratNeg (Rat x y) = Rat (intNeg x) y
 
 -- У рациональных ещё есть обратные элементы
 ratInv :: Rat -> Rat
-ratInv = undefined
+ratInv (Rat (Negative x) y) = Rat (intNeg $ Positive y) (x +. natOne)
+ratInv (Rat (Positive x) y) = Rat (Positive y) x
 
 -- Дальше как обычно
 ratCmp :: Rat -> Rat -> Tri
-ratCmp = undefined
+ratCmp (Rat x y) (Rat a b) = intCmp (x .*. Positive b) (a .*. Positive y)
 
 ratEq :: Rat -> Rat -> Bool
-ratEq = undefined
+ratEq x y = case ratCmp x y of
+	EQ -> True
+	otherwise -> False 
 
 ratLt :: Rat -> Rat -> Bool
-ratLt = undefined
+ratLt x y = case ratCmp x y of 
+	LT -> True
+	otherwise -> False
+
+ratNorm :: Rat -> Rat
+ratNorm (Rat (Positive x) y) = Rat (Positive $ natDiv x (gcd x y)) (natDiv y (gcd x y))
+ratNorm (Rat (Negative x) y) = Rat (Negative $ natDiv x (gcd x y)) (natDiv y (gcd x y))
 
 infixl 7 %+, %-
 (%+) :: Rat -> Rat -> Rat
-n %+ m = undefined
+Rat x y %+ Rat a b = ratNorm $ Rat (x .*. Positive b .+. a .*. Positive y) (y *. b)
 
 (%-) :: Rat -> Rat -> Rat
 n %- m = n %+ (ratNeg m)
 
 infixl 7 %*, %/
 (%*) :: Rat -> Rat -> Rat
-n %* m = undefined
+Rat x y %* Rat a b = ratNorm $ Rat (x .*. a) (y *. b)
 
 (%/) :: Rat -> Rat -> Rat
 n %/ m = n %* (ratInv m)
