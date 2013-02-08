@@ -62,37 +62,45 @@ take (Succ n) (Cons x xs) = Cons x $ take n xs
 
 -- Список без n первых элементов
 drop :: Nat -> List a -> List a
-drop = undefined
+drop Zero _ = Nil 
+drop _ Nil = Nil 
+drop (Succ n) (Cons x xs) = drop n xs
 
 -- Оставить в списке только элементы удовлетворяющие p
 filter :: (a -> Bool) -> List a -> List a
-filter f xs = undefined
+filter f = foldr (\x acc -> if' (f x) (Cons x acc) acc) Nil
 
 -- Обобщённая версия. Вместо "выбросить/оставить" p
 -- говорит "выбросить/оставить b".
 gfilter :: (a -> Maybe b) -> List a -> List b
-gfilter p = undefined
+gfilter _ Nil = Nil 
+gfilter f (Cons x xs) = case (f x) of 
+	Just y -> Cons y $ gfilter f xs
+	Nothing -> gfilter f xs  
 
 -- Копировать из списка в результат до первого нарушения предиката
 -- takeWhile (< 3) [1,2,3,4,1,2,3,4] == [1,2]
 takeWhile :: (a -> Bool) -> List a -> List a
+takeWhile _ Nil = Nil
 takeWhile f (Cons x xs) = if' (f x) (Cons x $ takeWhile f xs) (Nil) 
 
 -- Не копировать из списка в результат до первого нарушения предиката,
 -- после чего скопировать все элементы, включая первый нарушивший
 -- dropWhile (< 3) [1,2,3,4,1,2,3,4] == [3,4,1,2,3,4]
 dropWhile :: (a -> Bool) -> List a -> List a
-dropWhile = undefined
+dropWhile _ Nil = Nil
+dropWhile f all@(Cons x xs) =  if' (f x) (dropWhile f xs) (all) 
 
 -- Разбить список по предикату на (takeWhile p xs, dropWhile p xs),
 -- но эффективнее
 span :: (a -> Bool) -> List a -> Pair (List a) (List a)
-span p = undefined
+span _ Nil = Pair Nil Nil
+span f all@(Cons x xs) = if' (f x) (let (Pair as bs) = span f xs in Pair (Cons x as) bs) (Pair Nil all) 
 
 -- Разбить список по предикату на (takeWhile (not . p) xs, dropWhile (not . p) xs),
 -- но эффективнее
 break :: (a -> Bool) -> List a -> Pair (List a) (List a)
-break = undefined
+break f = span (not . f)
 
 -- n-ый элемент списка (считая с нуля)
 (!!) :: List a -> Nat -> a
@@ -100,6 +108,12 @@ Nil !! n = error "!!: empty list"
 (Cons a as) !! Zero = a 
 (Cons a as) !! (Succ n) = as !! n
 
+-- удаляет n-ый элемент списка (считая с нуля)
+delete :: Nat -> List a -> List a
+delete _ Nil = Nil 
+delete Zero (Cons x xs) = xs
+delete (Succ n) (Cons x xs) = Cons x $ delete n xs
+ 
 -- Список задом на перёд
 reverse :: List a -> List a
 reverse = foldl (\acc x -> (Cons x acc)) Nil
@@ -107,16 +121,24 @@ reverse = foldl (\acc x -> (Cons x acc)) Nil
 -- (*) Все подсписки данного списка
 subsequences :: List a -> List (List a)
 subsequences Nil = Cons Nil Nil
-subsequences (Cons x xs) = undefined
+subsequences (Cons x xs) = subsequences xs ++ map (Cons x) (subsequences xs)
 
 -- (*) Все перестановки элементов данного списка
 permutations :: List a -> List (List a)
-permutations = undefined
+permutations Nil = Cons Nil Nil 
+permutations (Cons x xs) = foldr (++) Nil (map (inserter x) (permutations xs))
+	where inserter x xs = insert' (length xs)
+	      insert' Zero = Cons (Cons x xs) Nil 
+	      insert' all@(Succ n) = Cons (take all xs ++ Cons x Nil ++ drop all xs) (insert' n)
 
 -- (*) Если можете. Все перестановки элементов данного списка
 -- другим способом
 permutations' :: List a -> List (List a)
-permutations' = undefined
+permutations' Nil = Cons Nil Nil
+permutations' xs = concatMap (\n -> map (Cons $ xs !! n) (permutations' $ delete n xs)) (createList $ length xs)
+	where createList n = createList' n Nil
+	      createList' Zero acc = acc
+	      createList' (Succ n) acc = createList' n (Cons n acc)
 
 -- Повторяет элемент бесконечное число раз
 repeat :: a -> List a
