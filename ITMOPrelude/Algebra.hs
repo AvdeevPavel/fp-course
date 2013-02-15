@@ -3,13 +3,13 @@ module ITMOPredule.Algebra where
 
 -- Реализовать для всего,
 -- что только можно из
-import Primitive
+import ITMOPredule.Primitive
 import Prelude (Read, Show, Eq, Bounded, Ord)
 -- всевозможные инстансы для классов ниже 
 
 -- Если не страшно, то реализуйте их и для
-import List
-import Tree
+import ITMOPredule.List
+import ITMOPredule.Tree
 
 -- Классы
 class Monoid a where

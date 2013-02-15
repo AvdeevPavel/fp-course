@@ -2,12 +2,9 @@
 module List where
 
 import Primitive
+
 import Prelude (Show, Read, error)
 import qualified Prelude as P ((++))
-
-
-
-
 
 ---------------------------------------------
 -- Что надо делать?

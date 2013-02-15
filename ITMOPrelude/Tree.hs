@@ -1,8 +1,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 module Tree where
 
-import Prelude (Show, Read, error, show)
 import Primitive 
+
+import Prelude (Show, Read, error, show)
 
 data Tree a = Leaf | Node a (Tree a) (Tree a) deriving (Show, Read)
 
@@ -25,7 +26,6 @@ mergeTreeToRight Leaf ys = ys
 mergeTreeToRight xs Leaf = xs 
 mergeTreeToRight (Node x ls rs) ys = Node x ls (mergeTreeToRight rs ys)
 
-
 leftRotate :: Tree a -> Tree a 
 leftRotate (Node x ls (Node l lt rt)) = Node l (Node x ls lt) rt
 leftRotate t = error "leftRotate: Incorrect tree"
@@ -37,6 +37,10 @@ rightRotate t = error "rightRotate: Incorrect tree"
 tmap :: (a -> b) -> Tree a -> Tree b
 tmap _ Leaf = Leaf 
 tmap f (Node x ls rs) = Node (f x) (tmap f ls) (tmap f rs)
+
+tconcatMap :: (a -> Tree b) -> Tree a -> Tree b
+tconcatMap _ Leaf = Leaf
+tconcatMap f (Node x ls rs) = mergeTreeToRight (tconcatMap f ls) $ mergeTreeToRight (f x) (tconcatMap f rs)    
 
 tfold :: (a -> b -> b) -> b -> Tree a -> b
 tfold _ acc Leaf = acc
