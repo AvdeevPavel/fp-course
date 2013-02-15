@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-module ITMOPrelude.List where
+module List where
 
 import Primitive
 import Prelude (Show, Read, error)

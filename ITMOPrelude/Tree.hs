@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-module ITMOPrelude.Tree where
+module Tree where
 
 import Prelude (Show, Read, error, show)
 import Primitive 
@@ -19,6 +19,12 @@ addToLeft li (Node x ls rs) = Node x (addToLeft li ls) rs
 addToRight :: a -> Tree a -> Tree a
 addToRight li Leaf = Node li Leaf Leaf 
 addToRight li (Node x ls rs) = Node x ls (addToRight li rs)
+
+mergeTreeToRight :: Tree a -> Tree a -> Tree a 
+mergeTreeToRight Leaf ys = ys 
+mergeTreeToRight xs Leaf = xs 
+mergeTreeToRight (Node x ls rs) ys = Node x ls (mergeTreeToRight rs ys)
+
 
 leftRotate :: Tree a -> Tree a 
 leftRotate (Node x ls (Node l lt rt)) = Node l (Node x ls lt) rt
