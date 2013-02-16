@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-module List where
+module ITMOPrelude.List where
 
-import Primitive
+import ITMOPrelude.Primitive
 
 import Prelude (Show, Read, error)
 import qualified Prelude as P ((++))

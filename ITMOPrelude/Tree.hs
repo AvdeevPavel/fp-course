@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-module Tree where
+module ITMOPrelude.Tree where
 
-import Primitive 
+import ITMOPrelude.Primitive 
 
 import Prelude (Show, Read, error, show)
 

@@ -3,9 +3,9 @@ module ITMOPrelude.Categories where
 
 -- Реализовать для всего,
 -- что только можно из
-import Primitive
-import List
-import Tree
+import ITMOPrelude.Primitive
+import ITMOPrelude.List
+import ITMOPrelude.Tree
 -- всевозможные инстансы для классов ниже
 
 --------------------------------------------------------------------------------
@@ -60,7 +60,6 @@ instance Monad List where
 instance Monad Tree where
 	return x = Node x Leaf Leaf
 	xs >>= f = tconcatMap f xs
-
 
 --------------------------------------------------------------------------------
 -- Монада State

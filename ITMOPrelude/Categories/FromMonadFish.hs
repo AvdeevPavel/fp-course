@@ -7,13 +7,13 @@ import ITMOPrelude.Categories
 import ITMOPrelude.Categories.MonadJoin
 
 -- делаем из нас
-instance MonadFish m => Monad where
-    return = ?
-    f >>= g = ?
-
 instance MonadFish m => Functor m where
-    fmap = ?
+    fmap f ma = (id >=> (returnFish . f)) ma  
+
+instance MonadFish m => Monad m where
+    return = returnFish 
+    ma >>= f = (id >=> f) ma  
 
 instance MonadFish m => MonadJoin m where
-    returnJoin = ?
-    join = ?
+    returnJoin = returnFish
+    join ma = (id >=> id) ma
