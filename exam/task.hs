@@ -84,17 +84,4 @@ test = Node 'x' (Node 'a' Leaf Leaf) (Node 'b' Leaf Leaf)
 test1 = Node 'x' (Node 'a' Leaf (Node 'c' Leaf Leaf)) (Node 'b' Leaf Leaf)
 test2 = Node 'x' (Node 'a' Leaf (Node 'c' (Node 'e' Leaf Leaf) (Node 'g' Leaf Leaf))) (Node 'b' Leaf Leaf)
 test3 = Node "x" (Node "ab" Leaf (Node "c" (Node "e" Leaf Leaf) (Node "g" Leaf Leaf))) (Node "b" Leaf Leaf)  
-  
--- Написал, но это работает за квадрат все равно. Ну за квадрат ведь. 
--- Не понимаю как с твоей идеей, в порядке l root right надо вывести за линию.  
-{-
-flatten1 :: (Show a) => Tree a -> String
-flatten1 t = flatten1' t ([], Leaf) 
-
-flatten1' :: (Show a) => Tree a -> ([String], Tree a) -> String
-flatten1' Leaf (x:_, Leaf) = x
-flatten1' Leaf (all@(x:_), (Node c ls rs)) = x ++ flatten1' ls ((show c):all, rs)
-flatten1' (Node c ls rs) ([], _) = flatten1' ls ((show c):[], rs)  
-flatten1' (Node c ls rs) (all@(x:_), (Node tc tls trs)) = flatten1' ls ((show c):all, rs) ++ (x ++ flatten1' tls ((show tc):all, trs))   
--}
 

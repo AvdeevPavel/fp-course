@@ -3,7 +3,7 @@ module Datatype (
 	, prettyPrint 
 	) where
 
-data Term = PROGRAMM String [CREATEFUNC] -- Название программы и содержимое + 
+data Term = PROGRAM String [CREATEFUNC] -- Название программы и содержимое  
 
 data CREATEFUNC = FUNCTION Func Type [INIT] INITBLOCK BLOCK | PROCEDURE Func [INIT] INITBLOCK BLOCK -- Задание функции и процедур 
 
@@ -29,8 +29,8 @@ foldlPrint f s = foldr (\x acc -> (f x) ++ s ++ acc)
 foldlPrint' = foldr (\x acc -> x ++ acc) 
  
 prettyPrint :: Term -> String
-prettyPrint (PROGRAMM [] []) = error "Bad Input"
-prettyPrint (PROGRAMM n xs) = "programm " ++ n ++ "\n" ++ foldlPrint (printFUNC) "\n" [] xs  
+prettyPrint (PROGRAM [] []) = error "Bad Input"
+prettyPrint (PROGRAM n xs) = "program " ++ n ++ "\n" ++ foldlPrint (printFUNC) "\n" [] xs  
 
 printFUNC :: CREATEFUNC -> String
 printFUNC (FUNCTION name t xs (INITBLOCK init) (BODY bl)) = "function " ++ name ++ "(" ++ (foldlPrint (printINIT) ", " [] xs) ++ "): " ++ 			(printTYPE t) ++ "\n" ++ (foldlPrint (printINIT) "\n" [] init) ++ "BEGIN \n" ++ printBLOCK bl
@@ -57,7 +57,7 @@ printTYPE Integer = "Integer"
 printTYPE STRING = "String"
 printTYPE Boolean = "Boolean"
 
-test = PROGRAMM "HelloWorld.pas" [ 
+test = PROGRAM "HelloWorld.pas" [ 
 		PROCEDURE "myprint" ([]) (INITBLOCK [
 			(INIT STRING "str")
 			]) (BODY [
