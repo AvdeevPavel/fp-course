@@ -1,7 +1,7 @@
-module Datatype (
+module Datatype {- (
 	Term, CREATEFUNC, BLOCK, ATOM, INITBLOCK, INIT, Type, Variable, Func, Expr
 	, prettyPrint 
-	) where
+	)-} where
 
 data Term = PROGRAM String [CREATEFUNC] -- Название программы и содержимое  
 
@@ -38,7 +38,7 @@ printFUNC (PROCEDURE name xs (INITBLOCK init) (BODY bl)) = "procedure " ++ name 
 		++ (foldlPrint (printINIT) "\n" [] init) ++ "BEGIN\n" ++ printBLOCK bl
 
 printBLOCK :: [ATOM] -> String 
-printBLOCK [] = "END\n"
+printBLOCK [] = "END;\n"
 printBLOCK (x:xs) = printATOM x ++ printBLOCK xs
 
 printATOM :: ATOM -> String 
@@ -46,7 +46,7 @@ printATOM (APP name vs) = name ++ "(" ++ (foldlPrint' [] vs) ++ "); \n"
 printATOM (PUT nv expr) = nv ++ ":=" ++ (show expr) ++ ";\n"
 printATOM (FOR nv (l, r) (BODY bs)) = "for " ++ nv ++ ":= " ++ (show l) ++ " to " ++ (show r) ++ " do" ++ "\n" ++ "BEGIN\n" ++ printBLOCK bs
 printATOM (WHILE expr (BODY bs)) = "while (" ++ expr ++ ") do\n" ++ printBLOCK bs
-printATOM (IF expr (BODY ts) (BODY es)) = "if " ++ expr ++ " then BEGIN " ++ printBLOCK ts ++ "END else BEGIN \n" ++ printBLOCK es ++ "END;\n"
+printATOM (IF expr (BODY ts) (BODY es)) = "if " ++ expr ++ " then BEGIN " ++ printBLOCK ts ++ "else BEGIN \n" ++ printBLOCK es 
  
 printINIT :: INIT -> String
 printINIT (INIT t v) = v ++ (":" ++ printTYPE t)
@@ -57,7 +57,7 @@ printTYPE Integer = "Integer"
 printTYPE STRING = "String"
 printTYPE Boolean = "Boolean"
 
-test = PROGRAM "HelloWorld.pas" [ 
+test = PROGRAM "HelloWorld" [ 
 		PROCEDURE "myprint" ([]) (INITBLOCK [
 			(INIT STRING "str")
 			]) (BODY [

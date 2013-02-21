@@ -1,1 +1,1 @@
-program HelloWorld.pas
+program HelloWorld
