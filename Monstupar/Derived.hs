@@ -47,6 +47,23 @@ many1 p = do
 
 -- "Вопросик" -- ноль или один раз
 optional :: Monstupar s a -> Monstupar s (Maybe a)
-optional p = (p >>= return . Just)<|> return Nothing --do 
-	 
+optional p = (p >>= return . Just)<|> return Nothing 
+ 
+sepBy :: Monstupar s a -> Monstupar s b -> Monstupar s [a]
+pt `sepBy` sep = (pt `sepBy1` sep) <|> (return [])
 
+sepBy1 :: Monstupar s a -> Monstupar s b -> Monstupar s [a]
+pt `sepBy1` sep = do 
+	a <- pt
+	as <- many (do {sep; pt})
+	return (a:as)
+
+sepEndBy :: Monstupar s a -> Monstupar s b -> Monstupar s [a]
+pt `sepEndBy` sep = (pt `sepEndBy1` sep) <|> (return [])
+
+sepEndBy1 :: Monstupar s a -> Monstupar s b -> Monstupar s [a]
+pt `sepEndBy1` sep = do 
+	a <- pt
+	sep
+	as <- many (do {x <- pt; sep; return x})
+	return (a:as)
