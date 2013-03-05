@@ -1,9 +1,10 @@
 import System.Environment
 import Control.Exception
+
 import Prelude hiding (catch)
 
--- ghc -o Parser Parser.hs ../Monstupar.hs ../Monstupar/Derived.hs ../Monstupar/Core.hs
 import Monstupar 
+--import Lexer
 import Datatype
 
 -- grammar
@@ -64,13 +65,13 @@ parseAtom :: Monstupar Char ATOM
 parseAtom = (do 
 		name <- parseString
 		charWithSpace '('
-		args <- (sepBy parseExpr $ charWithSpace ',')
+		args <- (sepBy parseEXPR $ charWithSpace ',')
 		charWithSpace ')'
 		return $ APP name args		
 	    ) <|> (do 
 		name <- parseNameVar
 		stringWithSpace ":="
-		expr <- parseExpr
+		expr <- parseEXPR
 		return $ PUT name expr
 	    ) <|> (do 
 		string "for"
@@ -85,7 +86,7 @@ parseAtom = (do
 	    ) <|> (do 
 		string "while"
 		charWithSpace '('
-		expr <- parseExpr
+		expr <- parseEXPR
 		charWithSpace ')'
 		stringWithSpace "do"
 		block <- parseBlock
@@ -93,7 +94,7 @@ parseAtom = (do
 	    ) <|> (do 
 		string "if"
 		spaces 
-		expr <- parseExpr
+		expr <- parseEXPR
 		spaces 
 		string "then"
 		tblock <- parseBlock 
@@ -122,6 +123,42 @@ parseInit = (do
 		return $ ARRAY name ((read left :: Int), (read right :: Int)) t
 	    ) 
 
+parseEXPR :: Monstupar Char EXPR  
+parseEXPR = (do 
+		f <- natNumber
+		return $ IVAL (read f)
+	    ) <|> (do 
+		f <- (string "True") <|> (string "False")
+		return $ BVAL (read f)
+	    ) <|> (do 
+		f <- parseString
+		return $ SVAL f
+	    ) <|> (do 
+		charWithSpace '('
+		name <- parseString
+		charWithSpace '('
+		args <- (sepBy parseEXPR $ charWithSpace ',')
+		charWithSpace ')'
+		charWithSpace ')'
+		return (APPP name args)	
+	    ) <|> (do 
+		exprWithBracket '+' (PLUS)
+	    ) <|> (do 
+		exprWithBracket '-' (MINUS)
+	    ) <|> (do 
+		exprWithBracket '*' (MULT)
+	    ) <|> (do 
+		exprWithBracket '/' (DIV)
+	    )
+	where exprWithBracket c func = (do 
+		charWithSpace '('
+		f <- parseEXPR
+		char c
+		s <- parseEXPR
+		charWithSpace ')'
+		return $ func f s 
+		) 
+
 parseType :: Monstupar Char Type 
 parseType = (do 
 		string "String" 
@@ -134,12 +171,6 @@ parseType = (do
 		return Boolean
 	    )  
 
-parseString :: Monstupar Char String  
-parseString = do 
-	c <- letter 
-	cs <- many $ letter <|> digit 
-	return (c:cs)
-
 parseNameVar :: Monstupar Char String  
 parseNameVar = do 
 	c <- letter 
@@ -150,23 +181,36 @@ letter = oneOf $ ['a' .. 'z'] ++ ['A' .. 'Z']
 digit = oneOf ['0' .. '9']
 operation = oneOf ['=', '+', '-', '*', '/', '>', '<', '<']
 symbol = oneOf ['[', ']', '"']
-space = oneOf [' ', '\t', '\n']
+space = oneOf [' ', '\t']
 
-spaces = many space
 natNumber = many1 digit
-parseExpr = many1 $ letter <|> digit <|> operation <|> symbol <|> space
+spaces = many space
 
-charWithSpace :: Char -> Monstupar Char String  
-charWithSpace c = (do {spaces; char c; spaces})
+parseString :: Monstupar Char String  
+parseString = do 
+	c <- letter 
+	cs <- many $ letter <|> digit <|> operation <|> symbol 
+	return (c:cs)
 
-stringWithSpace :: String -> Monstupar Char String  
-stringWithSpace s = (do {spaces; string s; spaces})
+stringWithSpace :: String -> Monstupar Char String
+stringWithSpace s = (do 
+			spaces
+			string s
+			spaces
+		    )
+
+charWithSpace :: Char -> Monstupar Char String
+charWithSpace c = (do 
+			spaces
+			char c
+			spaces
+		  )
+
 
 -- main
 main :: IO()  
 main = do 
-	---Как на строчку ниже навесить исключение на это, что бы в случае не совпадения с паттерном выдовать разумную надпись? 
-	(filename:_) <- getArgs  -- `catch` (\(e::SomeException) -> error "Write in args input filename, please") 
+	(filename:_) <- getArgs
  	contents <- readFile filename	
 	case runParser parseCode contents of 
 		Left _ -> error "Bad syntax file" 
