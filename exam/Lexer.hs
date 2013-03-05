@@ -33,11 +33,14 @@ data LEXEM = LProgram  -- +
 	   | LMULT -- + 
 	   | SEMICOLON -- + 
 	   | COLON -- + 
-	   | COMMA -- + 	   
+	   | COMMA -- + 
+	   | LTSTRING -- + 
+	   | LTINTEGER -- + 
+	   | LTBOOL -- + 	   
 	   | Ident String -- +
 	   | IConst Int -- + 
 	   | BConst Bool -- +
-		deriving (Show)
+		deriving (Show, Eq, Read)
 
 stringList :: [(String, LEXEM)]
 stringList = [("program", (LProgram)),
@@ -54,7 +57,10 @@ stringList = [("program", (LProgram)),
 	      ("end", (LEND)), 
 	      ("of", (LOF)), 
 	      ("array", (LARRAY)), 
-	      (":=", (LASSIGMENT))	    
+	      (":=", (LASSIGMENT)), 
+	      ("Integer", (LTINTEGER)),	    
+	      ("Boolean", (LTBOOL)),
+	      ("String", (LTSTRING))
 	   ]
 
 charList :: [(Char, LEXEM)]
@@ -72,10 +78,8 @@ charList = [ ('(', (OBRACKET)),
 	     ('\n', (NEWLINE))
 	   ]
 
--- LLVM 
- 
-parseLexerTERM :: Monstupar Char LEXEM
-parseLexerTERM = (
+parseLexem :: Monstupar Char LEXEM
+parseLexem = (
 		 foldr1 (\x acc -> x <|> acc) $ map (\x -> stringWithSpace (fst x) (snd x)) stringList
 	  	) <|>  ( 
 		 foldr1 (\x acc -> x <|> acc) $ map (\x -> charWithSpace (fst x) (snd x)) charList
@@ -95,6 +99,9 @@ parseLexerTERM = (
 		 spaces
 		 return $ BConst (read f) 
 		)   
+
+parseLexems :: Monstupar Char [LEXEM]
+parseLexems = many parseLexem
 
 letter = oneOf $ ['a' .. 'z'] ++ ['A' .. 'Z']
 digit = oneOf ['0' .. '9']

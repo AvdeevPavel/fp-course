@@ -4,56 +4,57 @@ import Control.Exception
 import Prelude hiding (catch)
 
 import Monstupar 
---import Lexer
+import Lexer
 import Datatype
 
 -- grammar
-parseCode :: Monstupar Char Term 
-parseCode = do 
-	string "program"	
-	spaces
-	name <- parseString 
-	charWithSpace ';'
-	other <- (sepBy parseFunc spaces)
-	return $ PROGRAM name other
-
-parseFunc :: Monstupar Char CREATEFUNC 
-parseFunc = (do 
-		string "procedure"
-		spaces
-		name <- parseString 		
-		charWithSpace '('
-		args <- (sepBy parseInit (charWithSpace ';'))
-		charWithSpace ')'
-		charWithSpace ';'
-		vars <- parseInitBlock
-		block <- parseBlock
-		return $ PROCEDURE name args vars block
-	    ) <|> (do  
-		string "function"
-		spaces
-		name <- parseString
-		charWithSpace '('
-		args <- (sepBy parseInit (charWithSpace ';'))
-		charWithSpace ')'
-		charWithSpace ':'
-		retType <- parseType				
-		charWithSpace ';'
-		vars <- parseInitBlock
-		block <- parseBlock
-		return $ FUNCTION name retType args vars block
+parseCode :: Monstupar LEXEM Term 
+parseCode = (do 
+	      char LProgram
+	      name <- like isIndentifer
+	      char SEMICOLON
+	      other <- many parseFunc
+	      case name of 
+		(Ident n) -> return $ PROGRAM n other
+		otherwise -> return $ PROGRAM "" []
 	    ) 
 
-parseBlock :: Monstupar Char BLOCK 
+parseFunc :: Monstupar LEXEM CREATEFUNC 
+parseFunc = (do 
+		char LProcedure
+		--name <- parseString 		
+		char OBRACKET
+		--args <- (sepBy parseInit (charWithSpace ';'))
+		char CBRACKET
+		char SEMICOLON
+		--vars <- parseInitBlock
+		--block <- parseBlock
+		return $ PROCEDURE "" [] (INITBLOCK []) (BODY []) --name args vars block
+	    ) <|> (do  
+		char LFunction
+		--name <- parseString
+		char OBRACKET
+		---args <- (sepBy parseInit (charWithSpace ';'))
+		char CBRACKET
+		char COLON
+		retType <- like isType	-- think about			
+		char SEMICOLON
+		--vars <- parseInitBlock
+		--block <- parseBlock
+		return $ FUNCTION "" STRING [] (INITBLOCK []) (BODY []) --name retType args vars block
+	    ) 
+
+
+parseBlock :: Monstupar LEXEM BLOCK 
 parseBlock = (do
-		stringWithSpace "begin"
-		other <- (sepEndBy parseAtom $ charWithSpace ';') 
-		string "end"
-		charWithSpace ';'
-		return $ BODY other
+		char LBEGIN
+		-- other <- (sepEndBy parseAtom $ char SEMICOLON) 
+		char LEND
+		char SEMICOLON
+		return $ BODY [] --other
 	     )	  
-			  	
-parseInitBlock :: Monstupar Char INITBLOCK
+{-			  	
+parseInitBlock :: Monstupar LEXEM INITBLOCK
 parseInitBlock = (do
 		  string "var" 
 		  spaces
@@ -170,49 +171,27 @@ parseType = (do
 		string "Boolean"
 		return Boolean
 	    )  
+-}
 
-parseNameVar :: Monstupar Char String  
-parseNameVar = do 
-	c <- letter 
-	cs <- many $ letter <|> digit <|> (oneOf ['[', ']'])
-	return (c:cs)
+isIndentifer :: LEXEM -> Bool 
+isIndentifer (Ident _) = True 
+isIndentifer _ = False
 
-letter = oneOf $ ['a' .. 'z'] ++ ['A' .. 'Z']
-digit = oneOf ['0' .. '9']
-operation = oneOf ['=', '+', '-', '*', '/', '>', '<', '<']
-symbol = oneOf ['[', ']', '"']
-space = oneOf [' ', '\t']
-
-natNumber = many1 digit
-spaces = many space
-
-parseString :: Monstupar Char String  
-parseString = do 
-	c <- letter 
-	cs <- many $ letter <|> digit <|> operation <|> symbol 
-	return (c:cs)
-
-stringWithSpace :: String -> Monstupar Char String
-stringWithSpace s = (do 
-			spaces
-			string s
-			spaces
-		    )
-
-charWithSpace :: Char -> Monstupar Char String
-charWithSpace c = (do 
-			spaces
-			char c
-			spaces
-		  )
-
+isType :: LEXEM -> Bool 
+isType (LTSTRING) = True 
+isType (LTINTEGER) = True
+isType (LTBOOL) = True
+isType _ = False
 
 -- main
 main :: IO()  
 main = do 
 	(filename:_) <- getArgs
- 	contents <- readFile filename	
-	case runParser parseCode contents of 
+ 	contents <- readFile filename
+	case runParser (many parseLexem) contents of 	
 		Left _ -> error "Bad syntax file" 
-		Right (_, term) -> putStrLn . prettyPrint $ term
+		Right (_, lexems) -> case runParser parseCode lexems of 
+					Left _ -> error "Bad syntax file" 
+					Right (_, term) -> putStrLn . prettyPrint $ term
 	return ()
+

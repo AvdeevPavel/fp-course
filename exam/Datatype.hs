@@ -81,7 +81,6 @@ printEXPR (MULT l r) = "(" ++ (printEXPR l) ++ " * " ++ (printEXPR r) ++ ")"
 printEXPR (DIV l r) = "(" ++ (printEXPR l) ++ " / " ++ (printEXPR r) ++ ")"
 printEXPR (APPP name xs) = "(" ++ name ++ " (" ++ (printSepBy ", " xs (printEXPR)) ++ ") " ++ ")"
 
-
 printSepBy :: String -> [a] -> (a -> String) -> String
 printSepBy _ [] _ = []
 printSepBy sep (x:[]) f = f x
